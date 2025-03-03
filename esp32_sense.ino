@@ -9,7 +9,7 @@
 APDS9500 sensor;
 ESP32DMASPI::Slave slave;
 
-static constexpr size_t BUFFER_SIZE = 4054; // should be multiple of 4
+static constexpr size_t BUFFER_SIZE = 4052; // should be multiple of 4
 static constexpr size_t QUEUE_SIZE = 1;
 uint8_t *dma_tx_buf;
 uint8_t *dma_rx_buf;
@@ -81,11 +81,11 @@ void loop() {
       // do something with received data: spi_slave_rx_buf
 
       slave.pop();
-      Serial.write(dma_rx_buf, BUFFER_SIZE-4);
+      Serial.write(dma_rx_buf, BUFFER_SIZE);
 
       for (int i = 0; i < BUFFER_SIZE; ++i)
 				dma_rx_buf[i] = 0;
   }
 
-  delay(10);
+  delay(50);
 }

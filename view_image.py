@@ -66,7 +66,8 @@ def main():
         ser.flush()
 
         # Request a new frame over serial and read it in
-        l = ser.read(4050)
+        l = ser.read(4052)
+        l = l[:-2]
 
         f_in = bytes_to_9bit_array(l)
 
@@ -77,8 +78,8 @@ def main():
         # frame = np.rot90(frame)
         # frame = np.rot90(frame)
 
-        frame = np.roll(frame, 20, axis=0)
-        frame[:20] = np.roll(frame[:20], -1, axis=1)
+        frame = np.roll(frame, -20, axis=0)
+        frame[-20:] = np.roll(frame[-20:], 1, axis=1)
 
         time.sleep(0.0001)
 
