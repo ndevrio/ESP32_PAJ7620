@@ -67,6 +67,7 @@ def main():
 
         # Request a new frame over serial and read it in
         l = ser.read(4052)
+        print(len(l))
         l = l[:-2]
 
         f_in = bytes_to_9bit_array(l)
