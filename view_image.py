@@ -7,7 +7,7 @@ import socket
 import pickle
 
 
-ser = serial.Serial('COM3', 10000000)
+ser = serial.Serial('COM3', 10000000, parity=serial.PARITY_NONE)
 
 
 # matplotlib setup
@@ -57,6 +57,20 @@ def bytes_to_9bit_array(data):
     return result
 
 
+def read_until(ser, target, timeout=5):
+    start_time = time.time()
+    in_waiting = ser.in_waiting
+    data = bytearray()
+    while time.time() - start_time < timeout:
+        if ser.in_waiting > in_waiting:
+            new_data = ser.read(ser.in_waiting - in_waiting)
+            data.extend(new_data)
+            if target in data.decode('utf-8', errors='ignore'):
+                return data.decode('utf-8', errors='ignore')
+            in_waiting = ser.in_waiting
+    return data#.decode('utf-8', errors='ignore')
+
+
 def main():
     ser.flush()
 
@@ -66,9 +80,25 @@ def main():
         ser.flush()
 
         # Request a new frame over serial and read it in
-        l = ser.read(4052)
+
+
+        ser.write(b'i')
+
+
+        time.sleep(0.025)
+        l = ser.read(ser.in_waiting)
+
+        # l = ser.read(4057)
+
+        # while(ser.inWaiting() < 4057):
+        #     continue
+        # l = ser.read(4052+5)
+        # # l = ser.readline()
+        # # l = read_until(ser, "\n\n\n\n\n")
         print(len(l))
-        l = l[:-2]
+        if(len(l) != 4057):
+            continue
+        l = l[:-7]
 
         f_in = bytes_to_9bit_array(l)
 
@@ -79,10 +109,10 @@ def main():
         # frame = np.rot90(frame)
         # frame = np.rot90(frame)
 
-        frame = np.roll(frame, -20, axis=0)
-        frame[-20:] = np.roll(frame[-20:], 1, axis=1)
+        # frame = np.roll(frame, -20, axis=0)
+        # frame[-20:] = np.roll(frame[-20:], 1, axis=1)
 
-        time.sleep(0.0001)
+        # time.sleep(0.01)
 
         # Display the new frame
         im.set_data(frame)
