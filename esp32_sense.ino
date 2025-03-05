@@ -9,7 +9,7 @@
 APDS9500 sensor;
 ESP32DMASPI::Slave slave;
 
-static constexpr size_t BUFFER_SIZE = 4054; // should be multiple of 4
+static constexpr size_t BUFFER_SIZE = 4052; // should be multiple of 4
 static constexpr size_t QUEUE_SIZE = 1;
 uint8_t *dma_tx_buf;
 uint8_t *dma_rx_buf;
@@ -66,26 +66,38 @@ void setup() {
 }
 //------------------------------------------------------------------------
 void loop() {
-  sensor.writeReg(0x5B, 0x01);
-
   // start and wait to complete one BIG transaction (same data will be received from slave)
   // if there is no transaction in queue, add transaction
   if (slave.remained() == 0) {
       slave.queue(dma_rx_buf, dma_tx_buf, BUFFER_SIZE);
   }
 
+  // Wait until char 'i' is received
+  while(1) {
+    if(Serial.available() > 0) {
+      char c = Serial.read();
+      if(c == 'i') {
+        break;
+      }
+    }
+  }
+  
+  sensor.writeReg(0x5B, 0x01);
+
   // if transaction has completed from master,
   // available() returns size of results of transaction,
   // and buffer is automatically updated
-  while (slave.available()) {
+  //while (slave.available()) {
       // do something with received data: spi_slave_rx_buf
 
-      slave.pop();
-      Serial.write(dma_rx_buf, BUFFER_SIZE-4);
+  while(!slave.available())
+    delay(1);
 
-      for (int i = 0; i < BUFFER_SIZE; ++i)
-				dma_rx_buf[i] = 0;
-  }
+  slave.pop();
+  Serial.write(dma_rx_buf, BUFFER_SIZE);
+  Serial.write("\n\n\n\n\n");
 
-  delay(10);
+  for (int i = 0; i < BUFFER_SIZE; ++i)
+    dma_rx_buf[i] = 0;
+  //}
 }
